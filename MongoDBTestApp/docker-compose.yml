@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+
+ mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    volumes:
+      - ${WEBAPP_STORAGE_HOME}/site:/data/db
+      #- ./data:/data/db
+    ports:
+      - "27017:27017"
+ mongodbtestapp:
+    image: ${DOCKER_REGISTRY-}mongodbtestapp
+    build:
+      context: .
+      dockerfile: MongoDBTestApp/Dockerfile
+    ports:
+      - "8000:80"
+    depends_on:
+      - mongo
+      

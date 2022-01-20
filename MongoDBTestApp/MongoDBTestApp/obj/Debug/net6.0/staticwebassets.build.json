@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "VhIM2/pUUoJr7pM897fnP/RAxPjxAnnrJHFK02YF5AE=",
+  "Source": "MongoDBTestApp",
+  "BasePath": "_content/MongoDBTestApp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
