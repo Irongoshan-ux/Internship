@@ -1,0 +1,12 @@
+D:\MassTransitTestApp\MassTransientTestApp.Shared\bin\Debug\net5.0\MassTransientTestApp.Shared.deps.json
+D:\MassTransitTestApp\MassTransientTestApp.Shared\bin\Debug\net5.0\MassTransientTestApp.Shared.dll
+D:\MassTransitTestApp\MassTransientTestApp.Shared\bin\Debug\net5.0\ref\MassTransientTestApp.Shared.dll
+D:\MassTransitTestApp\MassTransientTestApp.Shared\bin\Debug\net5.0\MassTransientTestApp.Shared.pdb
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.csproj.AssemblyReference.cache
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.GeneratedMSBuildEditorConfig.editorconfig
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.AssemblyInfoInputs.cache
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.AssemblyInfo.cs
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.csproj.CoreCompileInputs.cache
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.dll
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\ref\MassTransientTestApp.Shared.dll
+D:\MassTransitTestApp\MassTransientTestApp.Shared\obj\Debug\net5.0\MassTransientTestApp.Shared.pdb
