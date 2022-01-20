@@ -1,0 +1,27 @@
+version: '3.4'
+
+services:
+  carmarket.server:
+    image: ${DOCKER_REGISTRY-}carmarketserver
+    build:
+      context: .
+      dockerfile: Server/Dockerfile
+    ports:
+      - "10001:80"
+
+
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+      SA_PASSWORD: "somepassword.01"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "3309:3309"
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.5.0.0/16
+         gateway: 10.5.0.1

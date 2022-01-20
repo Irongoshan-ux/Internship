@@ -1,0 +1,120 @@
+﻿@using CarMarket.Core.DataResult
+@typeparam TItem
+
+<div class="col-12 row">
+    <table class="table table-bordered table-striped mb-0">
+        <thead class="bg-info">
+            <tr>
+                @GridColumns
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    @GridRow(item)
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<br />
+<div>
+    <button class="btn btn-secondary" @onclick="@(e => NavigateTo("first"))">@("<<")</button>
+    <button class="btn btn-secondary" @onclick="@(e => NavigateTo("prev"))">Prev</button>
+    @for (int i = 0; i < TotalPages; i++)
+    {
+        var pageNumber = i;
+        <button class="btn @(CurrentPage == pageNumber? "btn-dark":"btn-info")"
+                @onclick="@(e => UpdateList(pageNumber))">
+            @(i + 1)
+        </button>
+    }
+    <button class="btn btn-secondary" @onclick="@(e => NavigateTo("next"))">Next</button>
+    <button class="btn btn-secondary" @onclick="@(e => NavigateTo("last"))">@(">>")</button>
+</div>
+
+@code {
+    [Inject]
+    public HttpClient Http { get; set; }
+
+    [Parameter]
+    public TItem ItemType { get; set; }
+
+    [Parameter]
+    public RenderFragment GridColumns { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> GridRow { get; set; }
+
+    [Parameter]
+    public string ApiGetDataLink { get; set; }
+
+    public List<TItem> Items { get; set; } = new List<TItem>();
+    public int TotalItems { get; set; }
+
+    public int PageSize { get; set; }
+    public int TotalPages { get; set; }
+    public int CurrentPage { get; set; }
+
+    [Parameter]
+    public bool ReloadList { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        PageSize = 5;
+        CurrentPage = 0;
+
+        var result = await Http.GetFromJsonAsync<DataResult<TItem>>(ApiGetDataLink + "?skip=" + (CurrentPage * PageSize) + "&take=" + PageSize);
+
+        Items = result.Data.ToList();
+        TotalItems = result.Count;
+
+        TotalPages = CalculateTotalPages();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && ReloadList)
+        {
+            await UpdateList();
+            ReloadList = false;
+
+            StateHasChanged();
+        }
+
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task UpdateList(int pageNumber = 0)
+    {
+        if ((CurrentPage != 0 || pageNumber != 0) && !ReloadList)
+            CurrentPage = pageNumber;
+
+        var result = await Http.GetFromJsonAsync<DataResult<TItem>>(ApiGetDataLink + "?skip=" + (CurrentPage * PageSize) + "&take=" + PageSize);
+        
+        Items = result.Data.ToList();
+        TotalItems = result.Count;
+        
+        TotalPages = CalculateTotalPages();
+
+        this.StateHasChanged();
+    }
+
+    private async Task NavigateTo(string direction)
+    {
+        if (direction == "prev" && CurrentPage != 0)
+            CurrentPage -= 1;
+        if (direction == "next" && CurrentPage != TotalPages - 1)
+            CurrentPage += 1;
+        if (direction == "first")
+            CurrentPage = 0;
+        if (direction == "last")
+            CurrentPage = TotalPages - 1;
+
+        await UpdateList(CurrentPage);
+    }
+
+    private int CalculateTotalPages() => (int)Math.Ceiling(TotalItems / (decimal)PageSize);
+}

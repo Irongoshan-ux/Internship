@@ -1,0 +1,10 @@
+﻿@page "/claims"
+<AuthorizeView>
+    <Authorized>
+        <h2>Hello @context.User.Identity.Name, 
+            you are in role: @context.User.Claims.Where(x => x.Type.Contains("role")).Select(x => x.Value).FirstOrDefault()</h2>
+    </Authorized>
+    <NotAuthorized>
+        <p>I'm sorry, I can't display anything until you log in</p>
+    </NotAuthorized>
+</AuthorizeView>

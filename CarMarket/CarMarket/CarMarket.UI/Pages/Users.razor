@@ -1,0 +1,253 @@
+﻿@page "/admin/users"
+@using CarMarket.UI.Pages
+@using CarMarket.Core.User.Domain
+@using CarMarket.UI.Data
+@using CarMarket.UI.Services.User
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Roles = "Admin")]
+
+<AuthorizeView Context="auth" Roles = "Admin">
+<Authorized>
+
+<h1>Users Controller</h1>
+
+<button class="btn btn-success" @onclick="AddUser">Add User</button>
+
+<p>All users</p>
+
+     <GridView ItemType="user" ApiGetDataLink="https://localhost:10001/api/User/GetUsersByPage" ReloadList="DataUpdated">
+         <GridColumns>
+            <GridColumn ColumnTitle="Id"></GridColumn>
+            <GridColumn ColumnTitle="FirstName"></GridColumn>
+            <GridColumn ColumnTitle="LastName"></GridColumn>
+            <GridColumn ColumnTitle="Email"></GridColumn>
+            <GridColumn ColumnTitle="Role"></GridColumn>
+        </GridColumns>
+
+        <GridRow Context="user">
+                    
+                    @if (user.Id.Length > 20) 
+                    {
+                        <td>@(user.Id.Remove(20) + "...")</td>
+                    }
+                    else
+                    {
+                        <td>@user.Id</td>
+                    }
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.Role.Name</td>
+                    <button class="btn btn-primary"
+                        @onclick="() => EditUser(user)">
+                        Edit
+                    </button>
+                    <button class="btn btn-danger"
+                        @onclick="(() => DeleteUser(user))">
+                        Delete
+                    </button>
+        </GridRow>
+    </GridView>
+
+@if (ShowPopup)
+{
+    <!-- This is the popup to create or edit a user -->
+    <div class="modal" tabindex="-1" style="display:block" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">@TitleContext</h3>
+                    <!-- Button to close the popup -->
+                    <button type="button" class="close"
+                            @onclick="ClosePopup">
+                        <span aria-hidden="true">X</span>
+                    </button>
+                </div>
+                <!-- Edit form for the current user -->
+                <div class="modal-body">
+                        <input class="form-control" type="text"
+                                placeholder="Firstname"
+                                @bind="editedUser.FirstName" />
+                    <input class="form-control" type="text"
+                            placeholder="Lastname"
+                            @bind="editedUser.LastName" />
+                    <input class="form-control" type="email"
+                            placeholder="Email"
+                            @bind="editedUser.Email" />
+                            <input class="form-control" type="password"
+                            placeholder="Password"
+                            @bind="editedUser.PasswordHash" />
+
+                    <select class="form-control"
+                            @bind="@CurrentUserRole">
+                        @foreach (var role in UserRoles)
+                        {
+                            <option value="@role">
+                                @role
+                            </option>
+                        }
+                    </select>
+                    <br /><br />
+                   
+                    @if (string.IsNullOrWhiteSpace(editedUser.Id))
+                    {
+                            <button class="btn btn-primary"
+                            @onclick="CreateUser">
+                                Save
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary"
+                            @onclick="() => UpdateUser()">
+                                Update
+                            </button>
+                        }
+                    <br />
+                    <span style="color:red">@strError</span>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+</Authorized>
+</AuthorizeView>
+
+<BreadCrumb BreadCrumbData="BreadCrumbData"></BreadCrumb>
+
+@code {
+    [Inject]
+    public IHttpUserService UserService { get; set; }
+
+    public bool DataUpdated { get; set; } = false;
+
+    public BreadCrumbData BreadCrumbData { get; set; }
+
+    private UserModel user;
+    private UserModel newUser = new UserModel();
+
+    UserModel editedUser = new();
+    static List<string> UserRoles = GetUserRolesSelection();
+    string CurrentUserRole { get; set; } = UserRoles.FirstOrDefault();
+    string strError = "";
+    bool ShowPopup = false;
+    string TitleContext { get; set; }
+
+    protected override void OnInitialized()
+    {
+        BreadCrumbData = new BreadCrumbData()
+        {
+            Text = "Users",
+            Url = "/admin/users"
+        };
+    }
+
+    private void AddUser()
+    {
+        editedUser = new()
+        {
+            Id = null,
+            Role = new()
+        };
+
+        TitleContext = "Add new user";
+        ShowPopup = true;
+    }
+
+    private async Task CreateUser()
+    {
+        strError = string.Empty;
+
+        if(!SetUserRole(CurrentUserRole)) return;
+        if (string.IsNullOrWhiteSpace(editedUser.FirstName)) strError += "\nEnter user firstname";
+        if (string.IsNullOrWhiteSpace(editedUser.LastName)) strError += "\nEnter user lastname";
+        if (string.IsNullOrWhiteSpace(editedUser.Email)) strError += "\nEnter user email";
+        if (string.IsNullOrWhiteSpace(editedUser.PasswordHash)) strError += "\nEnter user password";
+
+        if (string.IsNullOrWhiteSpace(strError))
+        {
+            ShowPopup = false;
+
+            await UserService.CreateAsync(editedUser);
+
+            DataUpdated = true;
+        }
+    }
+    
+    private void EditUser(UserModel updatedUser)
+    {
+        editedUser = new()
+        {
+            Id = null,
+            Role = new()
+        };
+
+        TitleContext = "Edit user";
+
+        editedUser = updatedUser;
+
+        CurrentUserRole = editedUser.Role.Name;
+
+        ShowPopup = true;
+    }
+
+    private async Task UpdateUser()
+    {
+        strError = string.Empty;
+
+        if(!SetUserRole(CurrentUserRole)) return;
+        if (string.IsNullOrWhiteSpace(strError))
+        {
+            ShowPopup = false;
+
+            await UserService.UpdateAsync(editedUser.Id, editedUser);
+
+            DataUpdated = true;
+        }
+    }
+
+    private async Task DeleteUser(UserModel user)
+    {
+        ShowPopup = false;
+
+        await UserService.DeleteAsync(user.Id);
+
+        DataUpdated = true;
+    }
+
+    private void ClosePopup()
+    {
+        ShowPopup = false;
+    }
+
+    private static List<string> GetUserRolesSelection()
+    {
+        var names = string.Join(",", Enum.GetNames(typeof(UserRole)));
+
+        var userRoles = new List<string>()
+        {
+            "Select user role",
+        };
+
+        userRoles.AddRange(names.Split(',').ToList());
+
+        return userRoles;
+    }
+
+    private bool SetUserRole(string userRoleName)
+    {
+        if (!Enum.TryParse(typeof(UserRole), userRoleName, out object result))
+        {
+            strError += "\nSelect user role";
+            return false;
+        }
+
+        editedUser.Role = new()
+        {
+            Name = ((UserRole)result).ToString()
+        };
+
+        return true;
+    }
+}

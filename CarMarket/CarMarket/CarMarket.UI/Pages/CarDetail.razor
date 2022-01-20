@@ -1,0 +1,55 @@
+﻿@page "/cars/cardetail/{carId:long}"
+@page "/cars/cardetail"
+@page "/car"
+@using CarMarket.Core.Car.Domain
+@using CarMarket.BusinessLogic.Image.Service
+@using CarMarket.UI.Data
+@inject HttpClient Http
+
+
+<h3>Car Detail</h3>
+<hr />
+
+<div class="col-12 row">
+
+    @if (CarDetails != null)
+    {
+        <h5 class="col-12 row" style="font-weight:bold">Title: @CarDetails.Name
+            <br>Price: @CarDetails.Price
+        </h5>
+        <h6 class="col-12 row">Type: @CarDetails.CarType</h6>
+        <h6 class="col-12 row">Description: @CarDetails.Description</h6>
+
+        @foreach(var image in CarDetails.CarImages)
+        {
+            <h6 class="col-12 row"><img src="@ImageService.ConvertImageToDisplay(image)" width="200px"/></h6>
+        }
+
+        <h5 class="col-12 row" style="font-weight:bold">Car owner contacts</h5>
+        <h6 class="col-12 row">Owner: @($"{CarDetails.Owner.FirstName} {CarDetails.Owner.LastName}")
+        <br />Email: @CarDetails.Owner.Email
+        <br />Phone number: @CarDetails.Owner.PhoneNumber</h6>
+    }
+
+</div>
+@*<BreadCrumb BreadCrumbData="BreadCrumbData"></BreadCrumb>*@
+@code {
+
+    [Parameter]
+    public long CarId { get; set; }
+
+    public CarModel CarDetails { get; set; }
+
+    public BreadCrumbData BreadCrumbData { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        CarDetails = await Http.GetFromJsonAsync<CarModel>("https://localhost:10001/api/Car/GetCar/" + CarId);
+
+        BreadCrumbData = new()
+        {
+            Text = CarDetails.Name,
+            Url = $"/cars/cardetail/{CarDetails.Id}"
+        };
+    }
+}
